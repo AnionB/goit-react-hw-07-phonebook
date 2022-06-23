@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { useAddContactMutation, useGetContactsQuery } from 'redux/contactsApi';
+import { toast } from 'react-toastify';
+import { useEffect } from 'react';
 
 export default function ContactForm() {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
 
-  const [addCont, { isLoading: isUpdating }] = useAddContactMutation();
   const { data: contactsArray } = useGetContactsQuery();
+  const [addCont, { isLoading: isUpdating, isSuccess, error }] =
+    useAddContactMutation();
+
+  useEffect(() => {
+    isSuccess && toast.success('Контакт успешно добавлен') && clearForm();
+
+    !isSuccess &&
+      error &&
+      toast.error(' что-то пошло не так, попробуй еще разок');
+  }, [error, isSuccess]);
 
   function addContact(contact) {
     if (
@@ -14,9 +25,10 @@ export default function ContactForm() {
         cont => cont.name.toLowerCase() === contact.name.toLowerCase()
       )
     ) {
-      alert(contact.name + ' is already in contact');
+      toast.error(contact.name + ' is already in contact');
       return;
     }
+
     addCont(contact);
   }
 
@@ -39,6 +51,9 @@ export default function ContactForm() {
       name,
       phone,
     });
+  };
+
+  const clearForm = () => {
     setName('');
     setPhone('');
   };

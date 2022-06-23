@@ -1,20 +1,30 @@
 import { useContacts } from 'redux/contactsSlice';
 import { useGetContactsQuery, useDelContactMutation } from 'redux/contactsApi';
+import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 export default function ContactList() {
   const { filter } = useContacts();
-  const { data: contactList, isFetching, isError } = useGetContactsQuery();
+  const { data: contactList, isLoading, isError } = useGetContactsQuery();
 
-  const [delCon, { isLoading: isUpdating }] = useDelContactMutation();
+  const [delCon, { isLoading: isUpdating, isSuccess, error }] =
+    useDelContactMutation();
   const filteredContactList = () =>
     contactList.filter(contact =>
       contact.name.toLowerCase().includes(filter.toLowerCase())
     );
+  useEffect(() => {
+    isSuccess && toast.warning('Контакт успешно удален');
+
+    !isSuccess &&
+      error &&
+      toast.error(' что-то пошло не так, попробуй еще разок');
+  }, [error, isSuccess]);
 
   return (
     <>
       {isError && <p>Что-то пошло не так...</p>}
-      {isFetching && <p>Loading...</p>}
+      {isLoading && <p>Loading...</p>}
       {contactList && (
         <ul>
           {filteredContactList().map(({ id, name, phone }) => (
